@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neon Bay Trophy Guide — GTA VI · All 55 PS5 Trophies</title>
+<meta name="description" content="Offline guide and tracker for all 55 Grand Theft Auto VI trophies on PlayStation 5: cited guides, roadmap to the platinum, missable flags, checklist with saved progress, filters and a spoiler setting.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="sunset" aria-hidden="true"><span class="sun"></span><span class="palm p1"></span><span class="palm p2"></span><span class="skyline"></span></div>
+<header class="hero">
+  <div class="hero-text">
+    <p class="kicker">Grand Theft Auto VI &middot; PlayStation 5 &middot; Offline guide</p>
+    <h1>Neon Bay <span>Trophy Guide</span></h1>
+    <p class="sub">All 55 trophies — 1 platinum, 2 gold, 6 silver, 46 bronze. Every guide in our own words, with its sources named beside it. No online trophies, no cheats (they disable trophies), one playthrough is enough.</p>
+  </div>
+  <div class="progress-card" id="progressCard">
+    <div class="big-num"><strong id="earnedCount">0</strong><span>/ 55</span></div>
+    <div class="bar" role="progressbar" aria-label="Trophies earned" aria-valuemin="0" aria-valuemax="55" aria-valuenow="0" id="progressBar"><i id="progressFill"></i></div>
+    <p class="progress-line" id="progressLine">0% to the platinum — Vice Got a Price!</p>
+    <ul class="grade-counts" id="gradeCounts"></ul>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Guide sections">
+  <button type="button" role="tab" id="tabChecklist" aria-selected="true" data-view="checklist">Checklist &amp; Tracker</button>
+  <button type="button" role="tab" id="tabRoadmap" aria-selected="false" data-view="roadmap">Roadmap to Platinum</button>
+</nav>
+
+<section class="toolbar" aria-label="Tracker controls">
+  <div class="search-wrap">
+    <label for="search">Search trophies</label>
+    <input id="search" type="search" placeholder="Name, mission, keyword…" autocomplete="off">
+  </div>
+  <div class="chips" id="kindChips" role="group" aria-label="Filter by kind"></div>
+  <div class="toggles">
+    <label class="toggle"><input type="checkbox" id="earnedOnly"> Earned only</label>
+    <label class="toggle"><input type="checkbox" id="spoilerToggle"> Hide story spoilers</label>
+  </div>
+  <div class="io">
+    <button type="button" id="exportBtn">Export progress</button>
+    <label class="import-btn">Import progress <input id="importFile" type="file" accept="application/json,.json"></label>
+    <button type="button" id="resetBtn">Reset</button>
+  </div>
+  <p class="io-note" id="ioNote" role="status"></p>
+</section>
+
+<main>
+  <section id="viewChecklist" role="tabpanel" aria-labelledby="tabChecklist">
+    <p class="list-meta" id="listMeta"></p>
+    <div class="missable-banner" id="missableBanner"></div>
+    <ul class="trophy-list" id="trophyList"></ul>
+    <p class="empty" id="emptyState" hidden>No trophies match these filters. Try clearing the search or choosing another filter.</p>
+  </section>
+
+  <section id="viewRoadmap" role="tabpanel" aria-labelledby="tabRoadmap" hidden>
+    <div class="roadmap-intro">
+      <h2>Roadmap to the platinum — Vice Got a Price!</h2>
+      <p>Built from the official descriptions: story chapters and missions first, then stranger strands, activities, collectibles, one-off feats, and the long grind last. About 200 hours all in, most of it after the story. Cheats disable trophies, so leave them off for the whole run.</p>
+    </div>
+    <div class="missable-banner big" id="roadmapMissable"></div>
+    <ol class="stages" id="stageList"></ol>
+  </section>
+</main>
+
+<footer>
+  <p>Guide text is our own, written for this entry. Trophy names, descriptions and grades are PlayStation's, as listed by Exophase and PSNProfiles (18 Nov 2026). Sources are named beside every guide — a link opens only when you follow it; this app fetches nothing and works with the network off. No Rockstar logo, artwork or game screenshots: the look is our own.</p>
+  <p class="sources-line">Sources used: Exophase · PSNProfiles · Push Square · Shacknews (100% checklist, source: Rockstar Games) · KeenGamer · GTA6 Database · HowToVideoGame · EGamers.io · Xarmo.</p>
+</footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>
