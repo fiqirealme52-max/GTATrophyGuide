@@ -14,19 +14,31 @@
   <div class="hero-text">
     <p class="kicker">Grand Theft Auto VI &middot; PlayStation 5 &middot; Offline guide</p>
     <h1>Neon Bay <span>Trophy Guide</span></h1>
-    <p class="sub">All 55 trophies — 1 platinum, 2 gold, 6 silver, 46 bronze. Every guide in our own words, with its sources named beside it. No online trophies, no cheats (they disable trophies), one playthrough is enough.</p>
+    <p class="sub">All 55 trophies — 1 platinum, 2 gold, 6 silver, 46 bronze, 1,350 PSN points. Every guide step names the source it came from, with that source's date and link — 195 cited steps from 17 sources, audited 20 Nov 2026. No online trophies, no cheats (they disable trophies), one playthrough is enough.</p>
   </div>
   <div class="progress-card" id="progressCard">
     <div class="big-num"><strong id="earnedCount">0</strong><span>/ 55</span></div>
     <div class="bar" role="progressbar" aria-label="Trophies earned" aria-valuemin="0" aria-valuemax="55" aria-valuenow="0" id="progressBar"><i id="progressFill"></i></div>
     <p class="progress-line" id="progressLine">0% to the platinum — Vice Got a Price!</p>
+    <p class="points-line" id="pointsLine">0 / 1,350 PSN points</p>
     <ul class="grade-counts" id="gradeCounts"></ul>
   </div>
 </header>
 
+<section class="audit" id="auditStrip" aria-label="Citation audit">
+  <div class="audit-item"><strong id="auditSteps">–</strong><span>cited steps</span></div>
+  <div class="audit-item"><strong id="auditSources">–</strong><span>sources</span></div>
+  <div class="audit-item"><strong id="auditCoverage">–</strong><span>trophies covered</span></div>
+  <div class="audit-item"><strong id="auditPoints">–</strong><span>PSN points in the set</span></div>
+  <div class="audit-item"><strong id="auditUnconfirmed">–</strong><span>methods unconfirmed</span></div>
+  <div class="audit-item"><strong id="auditDate">–</strong><span>audit date</span></div>
+  <p class="audit-note" id="auditNote"></p>
+</section>
+
 <nav class="tabs" role="tablist" aria-label="Guide sections">
   <button type="button" role="tab" id="tabChecklist" aria-selected="true" data-view="checklist">Checklist &amp; Tracker</button>
   <button type="button" role="tab" id="tabRoadmap" aria-selected="false" data-view="roadmap">Roadmap to Platinum</button>
+  <button type="button" role="tab" id="tabSources" aria-selected="false" data-view="sources">Sources &amp; Audit</button>
 </nav>
 
 <section class="toolbar" aria-label="Tracker controls">
@@ -63,11 +75,32 @@
     <div class="missable-banner big" id="roadmapMissable"></div>
     <ol class="stages" id="stageList"></ol>
   </section>
+
+  <section id="viewSources" role="tabpanel" aria-labelledby="tabSources" hidden>
+    <div class="roadmap-intro">
+      <h2>Sources &amp; audit — every step cited</h2>
+      <p id="sourcesIntro">Each guide step below names the source it came from. The matrix shows how many trophies each source supports; the list gives every source with its date and link. Steps whose method no guide has confirmed yet are flagged unconfirmed — the game is not out until 26 May 2026, and this guide does not invent locations, steps or dates.</p>
+    </div>
+    <h3 class="matrix-title">Source matrix — trophies cited per source</h3>
+    <div class="matrix-wrap">
+      <table class="matrix" id="sourceMatrix">
+        <thead><tr><th>Source</th><th>Date</th><th>Steps</th><th>Trophies</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <h3 class="matrix-title">PSN points — the scale</h3>
+    <p class="points-note" id="pointsNote"></p>
+    <h3 class="matrix-title">All sources</h3>
+    <ul class="source-list" id="sourceList"></ul>
+    <h3 class="matrix-title">Unconfirmed methods</h3>
+    <p class="points-note">These trophies have no confirmed unlock method in any published guide yet (checked 20 Nov 2026). Their guides say so plainly instead of guessing.</p>
+    <ul class="source-list" id="unconfirmedList"></ul>
+  </section>
 </main>
 
 <footer>
-  <p>Guide text is our own, written for this entry. Trophy names, descriptions and grades are PlayStation's, as listed by Exophase and PSNProfiles (18 Nov 2026). Sources are named beside every guide — a link opens only when you follow it; this app fetches nothing and works with the network off. No Rockstar logo, artwork or game screenshots: the look is our own.</p>
-  <p class="sources-line">Sources used: Exophase · PSNProfiles · Push Square · Shacknews (100% checklist, source: Rockstar Games) · KeenGamer · GTA6 Database · HowToVideoGame · EGamers.io · Xarmo.</p>
+  <p>Guide text is our own, written for this entry. Trophy names, descriptions and grades are PlayStation's, as shown on PlayStation and Xbox from 19 Nov 2026 and collected by PSNProfiles and TrueAchievements. Sources are named beside every guide step — a link opens only when you follow it; this app fetches nothing and works with the network off. No Rockstar logo, artwork or game screenshots: the look is our own.</p>
+  <p class="sources-line">Sources used: PlayStation / Xbox platform data (PSNProfiles, TrueAchievements) · Push Square · PowerPyx · KeenGamer · GTABase · Shacknews (100% checklist, source: Rockstar Games) · HowToVideoGame · GTA6 Database · EGamers.io · Xarmo · Insider Gaming · Destructoid · GTA Spotter · Leonida Interactive · GTA6 Insider.</p>
 </footer>
 <script type="module" src="app.js"></script>
 </body>
