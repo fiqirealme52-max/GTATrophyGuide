@@ -1,6 +1,8 @@
 // Neon Bay Trophy Guide — offline checklist + tracker for GTA VI's 55 PS5 trophies.
 // All data comes from data/trophies.json (same origin, no network). Progress lives in
-// localStorage and can be exported to a file and imported back.
+// localStorage and can be exported to a file and imported back. Every guide step in the
+// data names its source (see the Sources & Audit tab), and each trophy carries its PSN
+// point value: platinum 300, gold 90, silver 30, bronze 15.
 const STORE_KEY = 'gta6-trophy-guide-v1';
 const KIND_LABELS = {
   all: 'All', story: 'Story', side: 'Side missions', collect: 'Collectibles',
@@ -11,13 +13,15 @@ const STAGES = [
   { n: 1, title: 'Play the story', desc: 'Chapters 1–4, the final mission, and the six named story missions. All 12 trophies pop automatically — but read the missable warning first: one meditation spot lives in Chapter 1.' },
   { n: 2, title: 'Strangers & side missions', desc: 'Seven side-character strands (Andy, Kenton, Billy, Randy, Tyrone, Bret) plus any 8 stranger strands for the silver. Sweep the map for stranger markers between story beats.' },
   { n: 3, title: 'Activities', desc: 'Start with the Chapter 1 balcony meditation, then work the shooting ranges (42 golds), Top Fun drone races (14 locations), races, fishing and the arcade. Most of these feed the 100% checklist.' },
-  { n: 4, title: 'Collectibles & exploration', desc: 'Card sets, WAiNK scans at 100 spots, 100 vehicles, all 52 areas of Leonida, every garage property and 10 Scooter Bros registrations. Pick things up as you pass them.' },
+  { n: 4, title: 'Collectibles & exploration', desc: 'Card sets, WAiNK scans at 100 spots, 100 vehicles, all of Leonida, every garage property and 10 Scooter Bros registrations. Pick things up as you pass them.' },
   { n: 5, title: 'Crime & one-off feats', desc: 'Partner robberies, bank vaults, armored trucks, one operation per gang, Combat Focus kills and the odd hidden moments (showroom smash, Ocean Beach cocktail, the strange event). All retryable in free roam.' },
   { n: 6, title: 'The grind & the platinum', desc: '250 stunts, 50 of the 80 challenges, $250,000 laundered and $100,000 spent — then A Long Road (100% completion) and the platinum, Vice Got a Price!, pops.' },
 ];
 
 const state = {
+  doc: null,
   trophies: [],
+  sources: {},
   earned: new Set(),
   spoiler: false,
   kind: 'all',
@@ -30,6 +34,19 @@ const state = {
 const $ = (id) => document.getElementById(id);
 const listEl = $('trophyList');
 const noteEl = $('ioNote');
+
+function pointsFor(t) {
+  const scale = state.doc && state.doc.points_scale ? state.doc.points_scale : {};
+  return scale[t.grade] ?? 0;
+}
+
+function pointsTotal() {
+  return state.trophies.reduce((sum, t) => sum + pointsFor(t), 0);
+}
+
+function pointsEarned() {
+  return state.trophies.reduce((sum, t) => sum + (state.earned.has(t.name) ? pointsFor(t) : 0), 0);
+}
 
 function loadState() {
   try {
@@ -54,7 +71,10 @@ function visibleTrophies() {
     if (state.kind === 'missable' && !t.missable) return false;
     if (state.kind !== 'all' && state.kind !== 'missable' && t.kind !== state.kind) return false;
     if (state.earnedOnly && !state.earned.has(t.name)) return false;
-    if (q && !(t.name + ' ' + t.description + ' ' + t.guide).toLowerCase().includes(q)) return false;
+    if (q) {
+      const hay = (t.name + ' ' + t.description + ' ' + t.guide + ' ' + (t.steps ?? []).map((s) => s.text).join(' ')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
     return true;
   });
 }
@@ -76,6 +96,7 @@ function renderProgress() {
   $('progressLine').textContent = n === total
     ? 'Platinum earned — Vice Got a Price! You are a Leonida Legend.'
     : `${pct}% to the platinum — Vice Got a Price! (${total - n} to go)`;
+  $('pointsLine').textContent = `${pointsEarned().toLocaleString('en-US')} / ${pointsTotal().toLocaleString('en-US')} PSN points`;
   const counts = $('gradeCounts');
   counts.replaceChildren();
   for (const g of ['platinum', 'gold', 'silver', 'bronze']) {
@@ -89,6 +110,90 @@ function renderProgress() {
   }
 }
 
+function renderAudit() {
+  const steps = state.trophies.reduce((sum, t) => sum + (t.steps ?? []).length, 0);
+  const cited = new Set();
+  for (const t of state.trophies) for (const s of t.steps ?? []) cited.add(s.source);
+  // The points scale is a source too: it backs the PSN points shown on every card.
+  if (state.doc && state.doc.points_scale && state.doc.points_scale.source) cited.add(state.doc.points_scale.source);
+  const covered = state.trophies.filter((t) => (t.steps ?? []).length > 0).length;
+  const unconfirmed = state.trophies.filter((t) => t.unconfirmed).length;
+  $('auditSteps').textContent = String(steps);
+  $('auditSources').textContent = String(cited.size);
+  $('auditCoverage').textContent = `${covered}/${state.trophies.length}`;
+  $('auditPoints').textContent = pointsTotal().toLocaleString('en-US');
+  $('auditUnconfirmed').textContent = String(unconfirmed);
+  $('auditDate').textContent = state.doc && state.doc.audit ? state.doc.audit.date : '–';
+  $('auditNote').textContent = state.doc && state.doc.audit ? state.doc.audit.note : '';
+}
+
+function renderSources() {
+  const perSource = {};
+  for (const t of state.trophies) {
+    const seen = new Set();
+    for (const s of t.steps ?? []) {
+      perSource[s.source] = perSource[s.source] ?? { steps: 0, trophies: 0 };
+      perSource[s.source].steps += 1;
+      if (!seen.has(s.source)) { perSource[s.source].trophies += 1; seen.add(s.source); }
+    }
+  }
+  const rows = Object.entries(perSource).sort((a, b) => b[1].trophies - a[1].trophies || b[1].steps - a[1].steps);
+  const tbody = document.querySelector('#sourceMatrix tbody');
+  tbody.replaceChildren();
+  for (const [key, v] of rows) {
+    const src = state.sources[key] ?? { name: key, date: '', url: '' };
+    const tr = document.createElement('tr');
+    const nameTd = document.createElement('td');
+    if (src.url) {
+      const a = document.createElement('a');
+      a.href = src.url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = src.name;
+      nameTd.append(a);
+    } else {
+      nameTd.textContent = src.name;
+    }
+    const dateTd = document.createElement('td');
+    dateTd.textContent = src.date ?? '';
+    const stepsTd = document.createElement('td');
+    stepsTd.textContent = String(v.steps);
+    const trTd = document.createElement('td');
+    trTd.textContent = String(v.trophies);
+    tr.append(nameTd, dateTd, stepsTd, trTd);
+    tbody.append(tr);
+  }
+  const scale = state.doc && state.doc.points_scale ? state.doc.points_scale : {};
+  const scaleSrc = state.sources[scale.source] ?? null;
+  $('pointsNote').textContent = `Bronze ${scale.bronze ?? 15} · Silver ${scale.silver ?? 30} · Gold ${scale.gold ?? 90} · Platinum ${scale.platinum ?? 300} — the standard PSN point values. This set: 1 platinum, 2 gold, 6 silver, 46 bronze = ${pointsTotal().toLocaleString('en-US')} points in total${scaleSrc ? ` (scale: ${scaleSrc.name}).` : '.'}`;
+  const list = $('sourceList');
+  list.replaceChildren();
+  for (const [key, src] of Object.entries(state.sources)) {
+    const li = document.createElement('li');
+    const b = document.createElement('b');
+    b.textContent = src.name;
+    li.append(b, document.createTextNode(` — ${src.role ?? ''} (${src.date ?? ''}). `));
+    if (src.url) {
+      const a = document.createElement('a');
+      a.href = src.url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = src.url;
+      li.append(a);
+    }
+    list.append(li);
+  }
+  const unc = $('unconfirmedList');
+  unc.replaceChildren();
+  for (const t of state.trophies.filter((x) => x.unconfirmed)) {
+    const li = document.createElement('li');
+    const b = document.createElement('b');
+    b.textContent = t.name;
+    li.append(b, document.createTextNode(` — ${t.description}`));
+    unc.append(li);
+  }
+}
+
 function renderMissableBanner() {
   const pma = state.trophies.find((t) => t.missable);
   const html = pma
@@ -99,6 +204,17 @@ function renderMissableBanner() {
     el.innerHTML = html;
     el.classList.toggle('show', Boolean(html));
   }
+}
+
+function sourceLink(key) {
+  const src = state.sources[key];
+  if (!src) return document.createTextNode(key);
+  const a = document.createElement('a');
+  a.href = src.url;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  a.textContent = `${src.name} (${src.date})`;
+  return a;
 }
 
 function trophyCard(t) {
@@ -138,6 +254,10 @@ function trophyCard(t) {
     kindTag.textContent = KIND_LABELS[t.kind] ?? t.kind;
     tags.append(kindTag);
   }
+  const pts = document.createElement('span');
+  pts.className = 'tag points';
+  pts.textContent = `${pointsFor(t)} pts`;
+  tags.append(pts);
   if (t.hidden) {
     const h = document.createElement('span');
     h.className = 'tag hidden-t';
@@ -149,6 +269,12 @@ function trophyCard(t) {
     m.className = 'tag missable';
     m.textContent = 'Missable';
     tags.append(m);
+  }
+  if (t.unconfirmed) {
+    const u = document.createElement('span');
+    u.className = 'tag unconfirmed';
+    u.textContent = 'Method unconfirmed';
+    tags.append(u);
   }
   title.append(h3, desc, tags);
   const btn = document.createElement('button');
@@ -171,26 +297,38 @@ function trophyCard(t) {
     lab.textContent = 'Guide';
     const guide = document.createElement('p');
     guide.textContent = t.guide;
-    const srcLab = document.createElement('p');
-    srcLab.className = 'label';
-    srcLab.textContent = 'Source';
-    const src = document.createElement('p');
-    src.className = 'source';
-    if (t.source_url) {
-      const a = document.createElement('a');
-      a.href = t.source_url;
-      a.target = '_blank';
-      a.rel = 'noopener';
-      a.textContent = t.source;
-      src.append(a);
-    } else {
-      src.textContent = t.source;
+    detail.append(lab, guide);
+    if (t.unconfirmed) {
+      const warn = document.createElement('p');
+      warn.className = 'unconfirmed-note';
+      warn.textContent = 'Method not yet confirmed by any published guide (checked 20 Nov 2026). Nothing here is invented — the steps below are all the sources confirm.';
+      detail.append(warn);
+    }
+    const steps = t.steps ?? [];
+    if (steps.length) {
+      const stepsLab = document.createElement('p');
+      stepsLab.className = 'label';
+      stepsLab.textContent = `Cited steps — ${steps.length}`;
+      detail.append(stepsLab);
+      const ol = document.createElement('ol');
+      ol.className = 'steps';
+      for (const s of steps) {
+        const item = document.createElement('li');
+        const txt = document.createElement('span');
+        txt.textContent = s.text + ' ';
+        const cite = document.createElement('span');
+        cite.className = 'cite';
+        cite.append(document.createTextNode('— '), sourceLink(s.source));
+        item.append(txt, cite);
+        ol.append(item);
+      }
+      detail.append(ol);
     }
     const stage = document.createElement('p');
     stage.className = 'stage-note';
     const stageDef = STAGES.find((s) => s.n === t.stage);
-    stage.textContent = `Roadmap: stage ${t.stage} — ${stageDef ? stageDef.title : ''}, step ${t.step}.` + (t.missable_note ? ' ' + t.missable_note : '');
-    detail.append(lab, guide, srcLab, src, stage);
+    stage.textContent = `Roadmap: stage ${t.stage} — ${stageDef ? stageDef.title : ''}, step ${t.step}. ${pointsFor(t)} PSN points.` + (t.missable_note ? ' ' + t.missable_note : '');
+    detail.append(stage);
     li.append(detail);
   }
   return li;
@@ -281,16 +419,21 @@ function setView(view) {
   state.view = view;
   $('tabChecklist').setAttribute('aria-selected', String(view === 'checklist'));
   $('tabRoadmap').setAttribute('aria-selected', String(view === 'roadmap'));
+  $('tabSources').setAttribute('aria-selected', String(view === 'sources'));
   $('viewChecklist').hidden = view !== 'checklist';
   $('viewRoadmap').hidden = view !== 'roadmap';
+  $('viewSources').hidden = view !== 'sources';
   if (view === 'roadmap') renderRoadmap();
+  if (view === 'sources') renderSources();
 }
 
 function renderAll() {
   renderProgress();
+  renderAudit();
   renderMissableBanner();
   renderList();
   if (state.view === 'roadmap') renderRoadmap();
+  if (state.view === 'sources') renderSources();
 }
 
 function exportProgress() {
@@ -322,7 +465,9 @@ async function importProgress(file) {
 async function init() {
   loadState();
   const doc = await (await fetch('data/trophies.json')).json();
+  state.doc = doc;
   state.trophies = doc.trophies;
+  state.sources = doc.sources ?? {};
   $('spoilerToggle').checked = state.spoiler;
   $('spoilerToggle').addEventListener('change', (e) => {
     state.spoiler = e.target.checked;
@@ -350,6 +495,7 @@ async function init() {
   });
   $('tabChecklist').addEventListener('click', () => setView('checklist'));
   $('tabRoadmap').addEventListener('click', () => setView('roadmap'));
+  $('tabSources').addEventListener('click', () => setView('sources'));
   renderChips();
   renderAll();
 }
