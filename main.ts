@@ -1,6 +1,6 @@
 // Neon Bay Trophy Guide — the program that hands the guide in (Node 22, standard library only).
 // The guide itself is plain static files in app/ (index.html, style.css, app.js and
-// data/trophies.json — no build step, nothing fetched over the network), plus 3–4 real browser
+// data/trophies.json — no build step, nothing fetched over the network), plus 4 real browser
 // screenshots in screenshots/. This program copies both folders from beside this file into
 // /output and writes /output/dossier.json with the vendored make.fun library, exactly as the
 // kit's starter did. Leave vendor/makefun-frontend.ts untouched: the scorer rebuilds the
@@ -29,7 +29,9 @@ if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), joi
 // 256 KiB; more than 993 files and directories in app/ or 48 MiB of app files: app/ counts
 // beside /output's own 1000-entry cap, its screenshots/ and dossier.json). Keep the app
 // small — it is a handful of files, and the first load is just index.html, style.css,
-// app.js and the trophy data the page fetches on open.
+// app.js and the trophy data the page fetches on open. The citation package lives in
+// app/data/trophies.json (195 cited steps, 17 sources, PSN points scale); it is data,
+// not code, so it needs no build step either.
 writeFileSync(
   join(out, 'dossier.json'),
   buildDossier(out, { text_max_bytes: 163840, screenshots: { max: 4, max_bytes: 262144 }, app_max_files: 993, app_max_bytes: 50331648 }),
